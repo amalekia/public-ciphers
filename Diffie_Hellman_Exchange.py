@@ -19,7 +19,7 @@ def getPublicKey(privateKey):
 def getSecretKey(privateKey, publicKey):
     return (publicKey**privateKey) % q
 
-if __name__ == "__main__":
+def generateSharedKey():
     # Alice's private key
     alice_private_key = getRandomInteger()
     # Bob's private key
@@ -53,4 +53,11 @@ if __name__ == "__main__":
     else:
         print("Keys do not match!")
     
-    # we will use this hashed_key for the AES algorithms
+
+if __name__ == "__main__":
+    hashed_key = generateSharedKey()
+   
+   # now we need to emulate AES encryption using hashed_key as key
+   # for message transfer between Alice and Bob
+   
+    
