@@ -1,5 +1,6 @@
 # implementing the key exchange logic where Alice sends q=37 and apha = 5
 import random
+from Crypto.Hash import SHA256
 
 
 q = 37
@@ -35,4 +36,7 @@ if __name__ == "__main__":
     print("alice shared key is " , getSecretKey(alice_key, bob_public_key))
     # Private Key from Bob Request
     print("bob shared key is " , getSecretKey(bob_key, alice_public_key))
+
+    # we now feed the secret key to the SHA256 function to generate a key that can be used for AES_CBC tasks
+
 
