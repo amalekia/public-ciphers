@@ -86,7 +86,7 @@ if __name__ == "__main__":
 
     # now we need to emulate AES encryption using hashed_key as key
     # for message transfer between Alice and Bob
-        with open('./aliceCipherText.txt', 'rb') as f:
+        with open('./aliceText.txt', 'rb') as f:
             plaintext = f.read()
 
         alice_ciphertext = encrypt_plaintext(plaintext, hashed_key)
@@ -94,7 +94,7 @@ if __name__ == "__main__":
         with open('./aliceCipherText.bmp', 'wb') as f:
             f.write(alice_ciphertext)
 
-        # Bob needs to read that ciphertext and decrypt it
+        # Bob recieves and needs to read that ciphertext and decrypt it
         with open('./aliceCipherText.bmp', 'rb') as f:
             bob_to_read_ciphertext = f.read()
 
@@ -103,4 +103,21 @@ if __name__ == "__main__":
         # bob writes the decrypted message alice sent to this file
         with open('./decrypted_alice_ciphertext.txt', 'wb') as f:
             f.write(decrypted)
-    
+
+        # Bob now writes a message and encrypts it to send to Alice
+        with open('./bobText.txt', 'rb') as f:
+            plaintext = f.read()
+        
+        bob_ciphertext = encrypt_plaintext(plaintext, hashed_key)
+
+         # write bob encrypted cipher text to file for Alice to listen to
+        with open('./bobCipherText.bmp', 'wb') as f:
+            f.write(bob_ciphertext)
+
+        # Alice recieves and needs to read that ciphertext and decrypt it
+        with open('./bobCipherText.bmp', 'rb') as f:
+            alice_to_read_ciphertext = f.read()
+        decrypted = decrypt(alice_to_read_ciphertext, hashed_key)
+        # alice writes the decrypted message bob sent to this file
+        with open('./decrypted_bob_ciphertext.txt', 'wb') as f:
+            f.write(decrypted)
