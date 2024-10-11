@@ -4,8 +4,10 @@ from Crypto.Hash import SHA256
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
 
-q = 37
-alpha = 5
+q_hex = "37B10B8F96A080E01DDE92DE5EAE5D54EC52C99FBCFB06A3C69A6A9DCA52D23B616073E28675A23D189838EF1E2EE652C013ECB4AEA906112324975C3CD49B83BFACCBDD7D90C4BD7098488E9C219A73724EFFD6FAE5644738FAA31A4FF55BCCC0A151AF5F0DC8B4BD45BF37DF365C1A65E68CFDA76D4DA708DF1FB2BC2E4A4371"
+q = int(q_hex, 16)
+alpha_hex = "A4D1CBD5C3FD34126765A442EFB99905F8104DD258AC507FD6406CFF14266D31266FEA1E5C41564B777E690F5504F213160217B4B01B886A5E91547F9E2749F4D7FBD7D3B9A92EE1909D0D2263F80A76A6A24C087A091F531DBF0A0169B6A28AD662A4D18E73AFA32D779D5918D08BC8858F4DCEF97C2A24855E6EEB22B3B2E5"
+alpha = int(alpha_hex, 16)
 
 # Function that picks a random positive integer 
 # this will be called by Alice and Bob to generate
@@ -83,7 +85,6 @@ if __name__ == "__main__":
     if (hashed_key == None):
         print("error")
     else:
-
     # now we need to emulate AES encryption using hashed_key as key
     # for message transfer between Alice and Bob
         with open('./aliceText.txt', 'rb') as f:
@@ -98,8 +99,11 @@ if __name__ == "__main__":
         with open('./aliceCipherText.bmp', 'rb') as f:
             bob_to_read_ciphertext = f.read()
 
-        print("bob_to_read cipher text is \n", bob_to_read_ciphertext)
+        print("\nbob_to_read cipher text is \n", bob_to_read_ciphertext)
         decrypted = decrypt(bob_to_read_ciphertext, hashed_key)
+        print("bob_to_read plain text is \n", decrypted)
+        print("\n")
+
         # bob writes the decrypted message alice sent to this file
         with open('./decrypted_alice_ciphertext.txt', 'wb') as f:
             f.write(decrypted)
@@ -117,7 +121,12 @@ if __name__ == "__main__":
         # Alice recieves and needs to read that ciphertext and decrypt it
         with open('./bobCipherText.bmp', 'rb') as f:
             alice_to_read_ciphertext = f.read()
+
+        print("alice_to_read cipher text is \n", alice_to_read_ciphertext)
         decrypted = decrypt(alice_to_read_ciphertext, hashed_key)
+        print("alice_to_read plain text is \n", decrypted)
+        print("\n")
+        
         # alice writes the decrypted message bob sent to this file
         with open('./decrypted_bob_ciphertext.txt', 'wb') as f:
             f.write(decrypted)
