@@ -36,8 +36,10 @@ def generateSharedKey():
 
     # now need to generate a secret key that is only shared between alice and bob
     # Private Key from Alice Request
+    # ***Task 2*** this is where mallory can intercept and change the private key being sent to generate the shared key
     shared_key_alice = getSecretKey(alice_private_key, bob_public_key)
     # Private Key from Bob Request
+    # ***Task 2*** this is where mallory can intercept and change the private key being sent to generate the shared key
     shared_key_bob = getSecretKey(bob_private_key, alice_public_key)
 
     # we now feed the secret key to the SHA256 function to generate a key that can be used for AES_CBC tasks
