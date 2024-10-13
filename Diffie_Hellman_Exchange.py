@@ -9,6 +9,11 @@ q = int(q_hex, 16)
 alpha_hex = "A4D1CBD5C3FD34126765A442EFB99905F8104DD258AC507FD6406CFF14266D31266FEA1E5C41564B777E690F5504F213160217B4B01B886A5E91547F9E2749F4D7FBD7D3B9A92EE1909D0D2263F80A76A6A24C087A091F531DBF0A0169B6A28AD662A4D18E73AFA32D779D5918D08BC8858F4DCEF97C2A24855E6EEB22B3B2E5"
 alpha = int(alpha_hex, 16)
 
+# ********* ATTACK MUT ALPHA **********
+alpha = 1
+# alpha = q
+# alpha = q-1
+
 # Function that picks a random positive integer 
 # this will be called by Alice and Bob to generate
 # their public key
@@ -32,18 +37,18 @@ def generateSharedKey():
     # Alice's public key
     # ***Task 2*** this is where mallory can intercept and change the private key being sent to generate the shared key
     alice_public_key = getPublicKey(alice_private_key)
-    alice_public_key = q        #attacked by mallory
+    #alice_public_key = q        #attack by mallory, modify the public key to q
 
     # Bob's public key
     bob_public_key = getPublicKey(bob_private_key)
-    bob_public_key = q          #attacked by mallory
+    #bob_public_key = q          #attack by mallory modify the public key to q
 
     # now need to generate a secret key that is only shared between alice and bob
     # Private Key from Alice Request
     shared_key_alice = getSecretKey(alice_private_key, bob_public_key)
     # Private Key from Bob Request
     shared_key_bob = getSecretKey(bob_private_key, alice_public_key)
-    
+
     # we now feed the secret key to the SHA256 function to generate a key that can be used for AES_CBC tasks
      # Check if both keys are the same
     if shared_key_alice == shared_key_bob:
@@ -84,6 +89,13 @@ def decrypt(ciphertext, key):
     
     return plaintext
 
+def decrypt_mallory(ciphertext, key):
+    hash_obj = SHA256.new()
+    hash_obj.update(str(key).encode('utf-8'))
+    # Get the hash value and truncate to 16 bytes
+    k_mallory = hash_obj.digest()[:16]
+    return decrypt(ciphertext, k_mallory)
+
 if __name__ == "__main__":
     hashed_key = generateSharedKey()
     if (hashed_key == None):
@@ -102,19 +114,36 @@ if __name__ == "__main__":
         with open('./aliceCipherText.bmp', 'wb') as f:
             f.write(alice_ciphertext)
 
+        # *************************** ATTACK MUTATING Y ********************************
         # mallory can decrypt the message using the symmetric key
         # mallory intercepted changing the formula to s = q^X mod q which always equals 0
         # Shared key is 0 for alice, bob, and now mallory
-        s_mallory = 0
-        hash_obj = SHA256.new()
-        hash_obj.update(str(s_mallory).encode('utf-8'))
-        
-        # Get the hash value and truncate to 16 bytes
-        k_mallory = hash_obj.digest()[:16]
 
-        cipher_m = AES.new(k_mallory, AES.MODE_CBC, iv=iv)
-        decrypted_mallory = decrypt(alice_ciphertext, k_mallory)
+        # s_mallory = 0
+        # decrypted_mallory = decrypt_mallory(alice_ciphertext, s_mallory)
+        # print("\nAlice's message to Bob decrypted by Mallory is: ", decrypted_mallory)
+        # ***************************** END OF ATTACK ********************************
+
+        # ************************** ATTACK MUTATING ALPHA ********************************
+        # mallory can decrypt the message using the symmetric key
+        # mallory intercepted by changin alpha and the formula is changed to s = alpha^X mod q
+        # where alpha is 1, q, or q-1
+        # Shared key is 1 for alpha = 1, 0 for alpha = q, and q-1 for alpha = q-1
+                  
+        s_mallory = 1               # IF ALPHA = 1
+        #s_mallory = 0               # IF ALPHA = q
+        decrypted_mallory = decrypt_mallory(alice_ciphertext, s_mallory)
         print("\nAlice's message to Bob decrypted by Mallory is: ", decrypted_mallory)
+
+        # COMMENT ABOVE CODE AND UNCOMMENT BELOW CODE TO TEST FOR ALPHA = q-1
+        # try:
+        #     s_mallory = q-1         # IF ALPHA = q-1 AND BOTH EXPONENTS ARE ODD OR A MIX OF ODD AND EVEN
+        #     decrypted_mallory = decrypt_mallory(alice_ciphertext, s_mallory)
+        # except:
+        #     s_mallory = 1           # ALPHA = q-1 AND BOTH EXPONENTS (X_A, X_B) ARE EVEN
+        #     decrypted_mallory = decrypt_mallory(alice_ciphertext, s_mallory)
+        # print("\nAlice's message to Bob decrypted by Mallory is: ", decrypted_mallory)
+        # ***************************** END OF ATTACK *************************************
 
         # Bob recieves and needs to read that ciphertext and decrypt it
         with open('./aliceCipherText.bmp', 'rb') as f:
