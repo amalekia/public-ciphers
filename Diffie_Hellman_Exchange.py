@@ -16,6 +16,7 @@ alpha = int(alpha_hex, 16)
 def getRandomInteger():
     return random.randint(1, 100)
 
+# Generates Y = alpha^privateKey mod q
 def getPublicKey(privateKey):
     return (alpha**privateKey) % q
 
@@ -29,19 +30,20 @@ def generateSharedKey():
     bob_private_key = getRandomInteger()
 
     # Alice's public key
+    # ***Task 2*** this is where mallory can intercept and change the private key being sent to generate the shared key
     alice_public_key = getPublicKey(alice_private_key)
+    alice_public_key = q        #attacked by mallory
 
     # Bob's public key
     bob_public_key = getPublicKey(bob_private_key)
+    bob_public_key = q          #attacked by mallory
 
     # now need to generate a secret key that is only shared between alice and bob
     # Private Key from Alice Request
-    # ***Task 2*** this is where mallory can intercept and change the private key being sent to generate the shared key
     shared_key_alice = getSecretKey(alice_private_key, bob_public_key)
     # Private Key from Bob Request
-    # ***Task 2*** this is where mallory can intercept and change the private key being sent to generate the shared key
     shared_key_bob = getSecretKey(bob_private_key, alice_public_key)
-
+    
     # we now feed the secret key to the SHA256 function to generate a key that can be used for AES_CBC tasks
      # Check if both keys are the same
     if shared_key_alice == shared_key_bob:
@@ -58,9 +60,9 @@ def generateSharedKey():
     else:
         return None
 
-def encrypt_plaintext(message, key):
-    # Create AES cipher in ECB mode
-    cipher = AES.new(key, AES.MODE_ECB)
+def encrypt_plaintext(message, key, iv):
+    # Create AES cipher in CBC mode
+    cipher = AES.new(key, AES.MODE_CBC, iv=iv)
     
     # Pad the message to be a multiple of 16 bytes
     padded_message = pad(message, AES.block_size)
@@ -68,14 +70,14 @@ def encrypt_plaintext(message, key):
     # Encrypt the message
     ciphertext = cipher.encrypt(padded_message)
     
-    return ciphertext
+    return iv + ciphertext
         
 def decrypt(ciphertext, key):
     # Create AES cipher in ECB mode
-    cipher = AES.new(key, AES.MODE_ECB)
+    cipher = AES.new(key, AES.MODE_CBC, iv=ciphertext[:AES.block_size])
     
     # Decrypt the message
-    decrypted_message = cipher.decrypt(ciphertext)
+    decrypted_message = cipher.decrypt(ciphertext[AES.block_size:])
     
     # Unpad the message to get the original plaintext
     plaintext = unpad(decrypted_message, AES.block_size)
@@ -92,10 +94,27 @@ if __name__ == "__main__":
         with open('./aliceText.txt', 'rb') as f:
             plaintext = f.read()
 
-        alice_ciphertext = encrypt_plaintext(plaintext, hashed_key)
+        # Generate a random initialization vector (IV)
+        iv = random.randbytes(AES.block_size)
+
+        alice_ciphertext = encrypt_plaintext(plaintext, hashed_key, iv)
         # write alice encrypted cipher text to file for Bob to listen to
         with open('./aliceCipherText.bmp', 'wb') as f:
             f.write(alice_ciphertext)
+
+        # mallory can decrypt the message using the symmetric key
+        # mallory intercepted changing the formula to s = q^X mod q which always equals 0
+        # Shared key is 0 for alice, bob, and now mallory
+        s_mallory = 0
+        hash_obj = SHA256.new()
+        hash_obj.update(str(s_mallory).encode('utf-8'))
+        
+        # Get the hash value and truncate to 16 bytes
+        k_mallory = hash_obj.digest()[:16]
+
+        cipher_m = AES.new(k_mallory, AES.MODE_CBC, iv=iv)
+        decrypted_mallory = decrypt(alice_ciphertext, k_mallory)
+        print("\nAlice's message to Bob decrypted by Mallory is: ", decrypted_mallory)
 
         # Bob recieves and needs to read that ciphertext and decrypt it
         with open('./aliceCipherText.bmp', 'rb') as f:
@@ -114,7 +133,7 @@ if __name__ == "__main__":
         with open('./bobText.txt', 'rb') as f:
             plaintext = f.read()
         
-        bob_ciphertext = encrypt_plaintext(plaintext, hashed_key)
+        bob_ciphertext = encrypt_plaintext(plaintext, hashed_key, iv)
 
          # write bob encrypted cipher text to file for Alice to listen to
         with open('./bobCipherText.bmp', 'wb') as f:
