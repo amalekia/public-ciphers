@@ -24,6 +24,9 @@ def find_d(e, L):
 def encrypt(M, e, n):
     return pow(M, e, n)
 
+def decrypt(ciphertext, d, n):
+    return pow(ciphertext, d, n)
+
 if __name__ == "__main__":
     # Key generation steps
     n = calculateN()
@@ -43,3 +46,7 @@ if __name__ == "__main__":
         print("ciphertext is ... " + str(ciphertext))
     else:
         print("Invalid plaintext! ... Exiting \n")
+
+    # decryption
+    decryptedMessage = decrypt(ciphertext, d, n)
+    print("decryptedMessage is ... " + str(decryptedMessage))
